@@ -4244,3 +4244,22 @@ There are no new hourly proposals since DEEP-10-10.
   cycle.
 - **P1, P2, P3(a): unchanged (PROPOSED).** The playbook is 590KB.
 - No new hourly proposals were filed in this window.
+
+## 2026-10-15 04:1xZ - operator runner: Polymarket gamma returns HTTP 451
+
+- **Symptom.** On the operator machine, `core/resolve.py` got `HTTP Error
+  451: Unavailable For Legal Reasons` from `gamma-api.polymarket.com/markets/<id>`
+  on every open market it tried (34 of 34 before I stopped it: 1193094,
+  5194672, 2420478, the Parcl 51946xx/51947xx set, ...). Each market burns
+  3 retries (~9s), so a full pass would exceed the 10-minute tool limit.
+- **Effect.** This runner cannot settle, scan, quote or place. The FULL
+  cycle at 04:09Z stopped after step 1. No ledger, forecast or screener
+  rows were written, and no screener batches were spent.
+- **Not seen before.** Earlier operator cycles (most recently 2026-10-07)
+  reached gamma, and the cloud runner reached it at 02:15Z today, so this
+  is about the operator machine's network egress or region, not the API.
+- **Ask (operator).** Check the machine's network or VPN region before the
+  next `./loop.sh` run. Optionally, `loop.sh` could probe gamma once at start
+  and either exit or downgrade to a no-op when it gets 451, before taking the
+  lease. A blocked operator lease costs the cloud runner a slot.
+- Status: PROPOSED (HIGH while it persists).
